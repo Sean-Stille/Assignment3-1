@@ -1,5 +1,6 @@
 import java.io.*;
 
+//contributors: MAX GRIMM, Scott Weber, Sean Stile
 public class App {
 
     static Path[] bestRoute;
@@ -20,26 +21,29 @@ public class App {
             if (i <= midPoint) {
                 itemsInDiagonal++;
                 for (int j = 0; j < itemsInDiagonal; j++) {
-                    rowIndex = (i - j) - 1;
-                    columnIndex = j;
+                    columnIndex = (i - j) - 1;
+                    rowIndex = j;
                     //if the number is on the last column it can only point down
                     if(columnIndex + 1 == sideLength){
                         Node currentNode = new Node(p);
-                        currentNode.setTopWeight(arr[arrIndex]);
+                        currentNode.setBottomWeight(arr[arrIndex]);
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex++;
                     }
                     //if the number is on the last row it can only point up
                     else if(rowIndex + 1 == sideLength){
                         Node currentNode = new Node(p);
-                        currentNode.setBottomWeight(arr[arrIndex]);
+                        currentNode.setTopWeight(arr[arrIndex]);
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex++;
                     }
                     //all other nodes that aren't in the right column or the bottom row will have 2 weights
                     else{
                         Node currentNode = new Node(p, arr[arrIndex], arr[arrIndex + 1]); 
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex = arrIndex + 2;
                     }
                     p++;
@@ -47,32 +51,36 @@ public class App {
             } else {
                 itemsInDiagonal--;
                 for (int j = 0; j < itemsInDiagonal; j++) {
-                    rowIndex = (sideLength - 1) - j;
-                    columnIndex = (i - sideLength) + j;
+                    columnIndex = (sideLength - 1) - j;
+                    rowIndex = (i - sideLength) + j;
                     //if the number is on the last column it can only point down
                     //this shouldn't ever happen here but just to be safe;
                     if(columnIndex + 1 == sideLength && rowIndex + 1 == sideLength){
                         Node currentNode = new Node(p);
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex++;
                     }
                     else if(columnIndex + 1 == sideLength){
                         Node currentNode = new Node(p);
-                        currentNode.setTopWeight(arr[arrIndex]);
+                        currentNode.setBottomWeight(arr[arrIndex]);
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex++;
                     }
                     //if the number is on the last row it can only point up
                     else if(rowIndex + 1 == sideLength){
                         Node currentNode = new Node(p);
-                        currentNode.setBottomWeight(arr[arrIndex]);
+                        currentNode.setTopWeight(arr[arrIndex]);
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex++;
                     }
                     //all other nodes that aren't in the right column or the bottom row will have 2 weights
                     else{
                         Node currentNode = new Node(p, arr[arrIndex], arr[arrIndex + 1]); 
                         diagonal[rowIndex][columnIndex] = currentNode;
+                        System.out.println("row" + rowIndex + " " + "column" + columnIndex + "node" + diagonal[rowIndex][columnIndex].getName());
                         arrIndex = arrIndex + 2;
                     }
                     p++;
@@ -82,14 +90,10 @@ public class App {
 
         for(int i = 0; i < sideLength; i++){
             for(int k = 0; k < sideLength; k++){ 
-                System.out.print(diagonal[k][i].getName() + "(");
-                try{
-                    System.out.print(diagonal[k][i].getTopWeight() + ", ");
-                    System.out.print(diagonal[k][i].getBottomWeight());
+                System.out.print(diagonal[i][k].getName() + "(");
+                    System.out.print(diagonal[i][k].getTopWeight() + ", ");
+                    System.out.print(diagonal[i][k].getBottomWeight());
                     System.out.print(") ");
-                }catch(Exception e){
-                   
-                }
             }
             System.out.println();
         }
@@ -99,6 +103,9 @@ public class App {
 
     //bottom up approach does not work because the turn penalty can't be foretold unless you store both options for the weights and do all of them
     public static void GetBestPath(int turnPenalty, Node[][] graph, int sideLength){
+        int neither = 2;
+        int up = 0;
+        int down = 1;
         int length = sideLength;
         int diagonalLines = (length + length) - 1;
         int midPoint = (diagonalLines / 2) + 1;
@@ -112,46 +119,66 @@ public class App {
             if (i <= midPoint) {
                 itemsInDiagonal++;
                 for (int j = 0; j < itemsInDiagonal; j++) {
-                    rowIndex = (i - j) - 1;
-                    columnIndex = j;
+                    columnIndex = (i - j) - 1;
+                    rowIndex = j;
                     if(rowIndex + columnIndex == 0){
-                       bestRoute[p] = new Path(0, 2); 
+                       bestRoute[p] = new Path(0, neither); 
+                       System.out.println("the first node");
                        p++;
                     }
                     //if they are on the first row and not the first column they only have one way to get to the node
                     //ie the previous node's pointer up
                     else if(rowIndex == 0 && columnIndex > 0){
-                        int topRow = graph[rowIndex][columnIndex - 1].getBottomWeight();
+                        int topRow = graph[rowIndex][columnIndex - 1].getTopWeight();
+                        System.out.println(topRow + "top");
                         //this way of retreiving is crucial
                         //the -1 is because the name is placed at the name -1 index
-                        Path current = new Path(topRow + bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1].getWeight(), 1);
-                        bestRoute[p] = current;
+                        if(columnIndex == sideLength - 1){
+                            Path current = new Path(topRow + bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1].getWeight() + turnPenalty, down);
+                            bestRoute[p] = current;
+                        }
+                        else{
+                            Path current = new Path(topRow + bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1].getWeight(), up);
+                            bestRoute[p] = current;
+                        }
                         p++;
                         //get the previous weight from the way we are storing it in a list and add that to the topRow and store that in a list
                     }
                     //if they are in the fist column and not the first row they only have one way to get to the node
                     //ie the previous node's pointer down
                     else if(columnIndex == 0 && rowIndex > 0){
-                        int bottomRow = graph[rowIndex - 1][columnIndex].getTopWeight();
-                        Path current = new Path(bottomRow + bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1].getWeight(), 0);
-                        bestRoute[p] = current;
+                        int bottomRow = graph[rowIndex - 1][columnIndex].getBottomWeight();
+                        System.out.println(bottomRow + "bot");
+                        if(rowIndex == sideLength - 1){
+                            Path current = new Path(bottomRow + bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1].getWeight() + turnPenalty, up);
+                            bestRoute[p] = current;
+                        }
+                        else{
+                            Path current = new Path(bottomRow + bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1].getWeight(), down);
+                            bestRoute[p] = current;
+                        }
                         p++;
                     }
                     else if(columnIndex > 0 && rowIndex > 0){
                           //the node that is below the one we are trying to get
-                          Path abovePath = bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1];
-                          int belowNodeTopWeight = graph[rowIndex - 1][columnIndex].getTopWeight();
+                          Path abovePath = bestRoute[graph[rowIndex][columnIndex -1].getName() - 1];
+                          int belowNodeTopWeight = graph[rowIndex][columnIndex -1].getTopWeight();
+                          System.out.println("below node top weight" + belowNodeTopWeight);
                           int belowNodeLastDirection = abovePath.getLastPath();
                            
                           //the node that is above the one we are trying to get
-                          Path belowPath = bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1];
-                          int aboveNodeBottomWeight = graph[rowIndex][columnIndex - 1].getBottomWeight();
+                          Path belowPath = bestRoute[graph[rowIndex -1][columnIndex].getName() - 1];
+                          int aboveNodeBottomWeight = graph[rowIndex -1][columnIndex].getBottomWeight();
+                          System.out.println("above node bottom Weight" + aboveNodeBottomWeight);
                           int aboveNodeLastDirection = belowPath.getLastPath();
    
   
                           Node curNode = graph[rowIndex][columnIndex];
+                          System.out.println("current node" + curNode.getName());
                           int curNodeTopWeight = curNode.getTopWeight();
+                          System.out.println(curNodeTopWeight);
                           int curNodeBottomWeight = curNode.getBottomWeight();
+                          System.out.println(curNodeBottomWeight);
   
                           boolean wasNotMeantToBe = false;
   
@@ -206,13 +233,17 @@ public class App {
                           
                           if(weightUsingBelowNode > weightUsingAboveNode){
                               direction = 0;
-                              if(wasNotMeantToBe)
-                                  bestWeight = weightUsingBelowNode - turnPenalty; 
+                              if(wasNotMeantToBe){
+                                bestWeight = weightUsingBelowNode - turnPenalty;
+                              }    
+                            bestWeight = weightUsingBelowNode;
                           }
                           else{
                               direction = 1;
-                              if(wasNotMeantToBe)
-                                  bestWeight = weightUsingAboveNode - turnPenalty;
+                              if(wasNotMeantToBe){
+                                bestWeight = weightUsingAboveNode - turnPenalty;
+                              }  
+                            bestWeight = weightUsingAboveNode;
                           }
                            bestRoute[p] = new Path(bestWeight, direction);
                            p++;
@@ -221,46 +252,63 @@ public class App {
             } else {
                 itemsInDiagonal--;
                 for (int j = 0; j < itemsInDiagonal; j++) {
-                    rowIndex = (length - 1) - j;
-                    columnIndex = (i - length) + j;
+                    columnIndex = (length - 1) - j;
+                    rowIndex = (i - length) + j;
                     if(rowIndex + columnIndex == 0){
-                        bestRoute[p] = new Path(0, 2); 
+                        bestRoute[p] = new Path(0, neither); 
                         p++;
                      }
                      //if they are on the first row and not the first column they only have one way to get to the node
                      //ie the previous node's pointer up
                      else if(rowIndex == 0 && columnIndex > 0){
-                         int topRow = graph[rowIndex][columnIndex - 1].getBottomWeight();
+                         int topRow = graph[rowIndex][columnIndex - 1].getTopWeight();
+                         System.out.println(topRow + "top");
                          //this way of retreiving is crucial
                          //the -1 is because the name is placed at the name -1 index
-                         Path current = new Path(topRow + bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1].getWeight(), 1);
-                         bestRoute[p] = current;
+                         if(columnIndex == sideLength - 1){
+                            Path current = new Path(topRow + bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1].getWeight() + turnPenalty, down);
+                            bestRoute[p] = current;
+                         }
+                         else{
+                            Path current = new Path(topRow + bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1].getWeight(), up);
+                            bestRoute[p] = current;
+                         }
                          p++;
                          //get the previous weight from the way we are storing it in a list and add that to the topRow and store that in a list
                      }
                      //if they are in the fist column and not the first row they only have one way to get to the node
                      //ie the previous node's pointer down
                      else if(columnIndex == 0 && rowIndex > 0){
-                         int bottomRow = graph[rowIndex - 1][columnIndex].getTopWeight();
-                         Path current = new Path(bottomRow + bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1].getWeight(), 0);
-                         bestRoute[p] = current;
+                         int bottomRow = graph[rowIndex - 1][columnIndex].getBottomWeight();
+                         System.out.println(bottomRow + "bot");
+                         if(rowIndex == sideLength - 1){
+                            Path current = new Path(bottomRow + bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1].getWeight() + turnPenalty, up);
+                            bestRoute[p] = current;
+                         }
+                         else{
+                            Path current = new Path(bottomRow + bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1].getWeight(), down);
+                            bestRoute[p] = current;
+                         }
                          p++;
                      }
                      else if(columnIndex > 0 && rowIndex > 0){
                         //the node that is below the one we are trying to get
-                        Path abovePath = bestRoute[graph[rowIndex - 1][columnIndex].getName() - 1];
-                        int belowNodeTopWeight = graph[rowIndex - 1][columnIndex].getTopWeight();
+                        Path abovePath = bestRoute[graph[rowIndex][columnIndex -1].getName() - 1];
+                        int belowNodeTopWeight = graph[rowIndex][columnIndex -1].getTopWeight();
                         int belowNodeLastDirection = abovePath.getLastPath();
                          
                         //the node that is above the one we are trying to get
-                        Path belowPath = bestRoute[graph[rowIndex][columnIndex - 1].getName() - 1];
-                        int aboveNodeBottomWeight = graph[rowIndex][columnIndex - 1].getBottomWeight();
+                        Path belowPath = bestRoute[graph[rowIndex -1][columnIndex].getName() - 1];
+                        int aboveNodeBottomWeight = graph[rowIndex -1][columnIndex].getBottomWeight();
                         int aboveNodeLastDirection = belowPath.getLastPath();
  
 
                         Node curNode = graph[rowIndex][columnIndex];
+                        System.out.println("current node" + curNode.getName());
                         int curNodeTopWeight = curNode.getTopWeight();
+                        System.out.println(curNodeTopWeight);
                         int curNodeBottomWeight = curNode.getBottomWeight();
+                        System.out.println(curNodeBottomWeight);
 
                         boolean wasNotMeantToBe = false;
 
@@ -312,17 +360,27 @@ public class App {
                                weightUsingAboveNode = aboveNodeBottomWeight + belowPath.getWeight() + turnPenalty; 
                             }
                         }
-                        
+
                         if(weightUsingBelowNode > weightUsingAboveNode){
                             direction = 0;
-                            if(wasNotMeantToBe)
+                            if(wasNotMeantToBe){
                                 bestWeight = weightUsingBelowNode - turnPenalty; 
+                            }
+                            bestWeight = weightUsingBelowNode;
                         }
                         else{
                             direction = 1;
-                            if(wasNotMeantToBe)
+                            if(wasNotMeantToBe){
                                 bestWeight = weightUsingAboveNode - turnPenalty;
+                            }  
+                            bestWeight = weightUsingAboveNode;
                         }
+
+                        //turn penalty is added an extra turn penalty so we get rid of it
+                        if(columnIndex == sideLength -1 && rowIndex == sideLength -1){
+                            bestWeight = bestWeight - turnPenalty;
+                        }
+
                          bestRoute[p] = new Path(bestWeight, direction);
                          p++;
                      }
@@ -377,6 +435,10 @@ public class App {
         System.out.println("turn penalty: " + turnPenalty);
 
         GetBestPath(turnPenalty, paths, k);
+
+        for(int i = 0; i < bestRoute.length; i++){
+            System.out.println(i+1 + ": " + bestRoute[i].getWeight() + " " + bestRoute[i].getLastPath());
+        }
 
 
         System.out.println(bestRoute[numberOfNodes - 1].getWeight());
